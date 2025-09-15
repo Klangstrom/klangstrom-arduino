@@ -1,4 +1,4 @@
-# Generated from CLion C/C++ Code Style settings
+# klangstrom C/C++ Code style
 BasedOnStyle: LLVM
 AccessModifierOffset: -4
 AlignAfterOpenBracket: Align

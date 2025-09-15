@@ -1,6 +1,8 @@
-contains a series of libraries that are mostly but not exclusively used by the *Arduino IDE* or `arduino-cli`.
+*Klangstrom* (KLST) is a subtractive infrastructure design framework to facilitate generative, networked, embedded sound + music + composition. *klangstrom* is comprised of two software libraries ( *klang* a node+text-based sound synthesis library and *strom* a node+text-based generative composition library ), an embedded hardware platform, and a programming environment to allow seamless development of generative, networked, embedded sound + music + composition applications.
 
-*klangstrom-libraries* are used ( as git *subtree* ) in the repositories *klangstrom-hardware* and *klangstrom-arduino*.
+---
+
+contains a series of libraries that are mostly but not exclusively used by the *Arduino IDE* or `arduino-cli`. *klangstrom-libraries* are used ( as git *subtree* ) in the repositories *klangstrom-hardware* and *klangstrom-arduino*.
 
 libraries included in *klangstrom-libraries*:
 
