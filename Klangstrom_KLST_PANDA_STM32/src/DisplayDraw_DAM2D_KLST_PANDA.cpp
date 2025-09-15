@@ -38,6 +38,8 @@ extern DMA2D_HandleTypeDef hdma2d;
 static void DMA2D_XferCpltCallback(DMA2D_HandleTypeDef* handle);
 static void DMA2D_XferErrorCallback(DMA2D_HandleTypeDef* handle);
 
+static constexpr uint8_t BYTES_PER_PIXEL = 4;
+
 static void display_LTDC_DMA2D_init() {
     // NOTE not calling `MX_DMA2D_Init()`
     hdma2d.XferCpltCallback  = DMA2D_XferCpltCallback;
