@@ -1,0 +1,10 @@
+stm32duino.config
+remove_linked_variant_files.sh
+link-klangstrom-arduino-variants-into-stm32duino.sh
+link-klangstrom-arduino-libraries-from-klangstrom-arduino.sh
+link_variant_files.sh
+link_libraries.sh
+klst-sketch
+klst-serialmonitor
+klangstrom-tools-filelist.txt
+append-board-variant-definition.sh

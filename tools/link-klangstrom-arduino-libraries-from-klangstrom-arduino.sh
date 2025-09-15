@@ -1,8 +1,10 @@
 #!/bin/zsh
 
+source klangstrom-tools.config
+
 # TODO WIP this is macOS only for now
 
-SRC="../libraries"
+SRC="$KLST_ARDUINO_PATH/libraries"
 DST="$HOME/Documents/Arduino/libraries"
 echo
 echo "linking libraries from '$SRC' into '$DST'"

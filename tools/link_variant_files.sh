@@ -4,7 +4,7 @@
 # this script symlinks all `variant` files from the local variant folder to the STM32duino variant folder. this 
 # script only needs to be run when files are added or deleted. this script is for development purposes only.
 #
-# e.g `./link_variant_files.sh ../variants/KLST_PANDA/variant $STM32DUINO_HOME/variants/STM32H7xx/H723Z\(E-G\)T_H730ZBT_H733ZGT`
+# e.g `link-variant-files.sh $HOME/Documents/dennisppaul/projects/klangstrom/git/klangstrom-hardware/KLST_PANDA/variant $HOME/Library/Arduino15/packages/STMicroelectronics/hardware/stm32/2.7.1/variants/STM32H7xx/H723Z\(E-G\)T_H730ZBT_H733ZGT`
 #
 
 # Check if correct number of arguments is passed
@@ -28,10 +28,6 @@ if [ ! -d "$destination_dir" ]; then
     echo "Error: Destination directory '$destination_dir' does not exist."
     exit 1
 fi
-
-# moved to extra script
-# # Remove old symbolic links in the destination directory
-# find "$destination_dir" -type l -exec rm {} \;
 
 # Create new symbolic links from the source directory to the destination directory
 for file in "$source_dir"/*; do
