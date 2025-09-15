@@ -2,10 +2,10 @@
 
 // Define defaults for each variable.
 
-@import url(https://fonts.googleapis.com/css?family=Roboto%20Mono);
+@import url('https://fonts.cdnfonts.com/css/jetbrains-mono');
 
-$base-font-family: 'Roboto Mono', 'Courier New', monospace !default;
-$base-font-size:   12px !default;
+$base-font-family: 'JetBrains Mono', 'Courier New', monospace !default;
+$base-font-size:   16px !default;
 $base-font-weight: 400 !default;
 $small-font-size:  $base-font-size * 1.0 !default;
 $base-line-height: 1.75 !default;

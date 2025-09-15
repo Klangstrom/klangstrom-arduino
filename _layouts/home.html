@@ -10,11 +10,10 @@ layout: default
     <div class="home-abstract">
         {{ content }}
     </div>
-    <p class="dash-separator">------------------------------------------------------------------------------------------------------------------------</p>
-    <div class="libdoc-list">
-        <h2>Library Documentation</h2>
+    <div class="manual-list">
+        <h2>Operation Manual</h2>
         <ul class="post-list">
-            {% assign items = site.libdoc | sort: 'index' %}
+            {% assign items = site.manual | sort: 'index' %}
             {% for page in items %}
             <li>
                 <a href="{{ page.url | relative_url }}">{{ page.title }}</a></br>
@@ -22,10 +21,10 @@ layout: default
             {% endfor %}
         </ul>
     </div>
-    <div class="manual-list">
-        <h2>Operation Manual</h2>
+    <div class="libdoc-list">
+        <h2>Library Documentation</h2>
         <ul class="post-list">
-            {% assign items = site.manual | sort: 'index' %}
+            {% assign items = site.libdoc | sort: 'index' %}
             {% for page in items %}
             <li>
                 <a href="{{ page.url | relative_url }}">{{ page.title }}</a></br>

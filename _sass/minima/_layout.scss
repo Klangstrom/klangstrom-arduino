@@ -147,8 +147,8 @@ sup {
  * Site header
  */
 .site-header {
-  border-top: 5px solid $background-color;
-  border-bottom: 1px solid $grey-color-light;
+  margin-top: $spacing-unit;
+  border-bottom: 1px dashed #000;
   min-height: $spacing-unit * 1.865;
 
   // Positioning context for the mobile navigation icon
@@ -161,6 +161,12 @@ sup {
   a:hover {
     text-decoration: underline;
   }
+}
+
+.site-header .wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* left align */
 }
 
 .site-title {
@@ -179,7 +185,9 @@ sup {
 }
 
 .site-nav {
-  float: right;
+  float: none;        /* remove the float */
+  margin-top: 0.5rem; /* add some spacing below logo */
+  width: 100%;        /* optional: full width */
   line-height: $base-line-height * $base-font-size * 2.25;
 
   .nav-trigger {
@@ -251,7 +259,7 @@ sup {
     }
 
     .page-link {
-      display: block;
+      display: inline-block;
       padding: 5px 10px;
 
       &:not(:last-child) {
@@ -268,8 +276,22 @@ sup {
  * Site footer
  */
 .site-footer {
-  border-top: 1px solid $grey-color-light;
+//  border-top: 1px solid $grey-color-light;
+  border-top: 1px dashed #000;
   padding: $spacing-unit 0;
+}
+
+.site-footer .footer-col-wrapper {
+  display: flex;
+  flex-direction: column; /* stack elements vertically */
+  align-items: flex-start; /* left align */
+}
+
+.site-footer .footer-col {
+  float: none;       /* remove default floats */
+  width: 100%;       /* take full width if needed */
+  margin-bottom: 0.5rem; /* space between sections */
+  text-align: left;  /* force left text alignment */
 }
 
 .footer-heading {
