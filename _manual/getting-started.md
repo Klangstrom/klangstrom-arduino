@@ -5,4 +5,12 @@ permalink: /getting-started/
 index: 10
 ---
 
-- install [Arduino IDE](https://www.arduino.cc/en/software/)
+⚠️⚠️⚠️ WIP ⚠️⚠️⚠️
+
+words on writing applications
+
+## DSP libraries
+
+- klang + strom
+- klangwellen
+- daisysp

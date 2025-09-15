@@ -22,7 +22,7 @@ title: Klangstrom Documentation
 author: Dennis P Paul
 email: dennis.paul@hfk-bremen.de
 description: >- # this means to ignore newlines until "baseurl:"
-  <a href="https://github.com/Klangstrom">Klangstrom</a> is generously funded by <a href="https://hfk-bremen.de">Hochschule&nbsp;f&uuml;r&nbsp;K&uuml;nste&nbsp;Bremen</a>.
+  *Klangstrom* is an open project initiated by Dennis P Paul and Jacob Remin.
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "http://klangstrom-for-arduino.dennisppaul.de" # the base hostname & protocol for your site, e.g. http://example.com
 github_username: Klangstrom

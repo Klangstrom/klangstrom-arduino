@@ -4,6 +4,10 @@ title: Installation
 permalink: /installation/
 ---
 
+⚠️⚠️⚠️ WIP info is outdated ⚠️⚠️⚠️
+
+---
+
 begin by installing [Arduino](https://www.arduino.cc/en/software) (v1.8.19+).
 
 the easiest and fastest way to install the lastest *Klangstrom* release is to open the Arduino preferences under `Ardunio > Preferences…` and then add to `Additional Boards Manager URLs: ` the following URLs ( separated by `,` ):

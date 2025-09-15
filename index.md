@@ -4,35 +4,28 @@ layout: home
 
 {% include KLST--abstract.md %}
 
-## Klangstrom Boards
+![KLST_PANDA]({{ site.baseurl }}{% link assets/2024-03-06-KLST_PANDA-middle.jpg %})
 
-![KLST_all_boards]({{ site.baseurl }}{% link assets/2024-03-06-KLST_PANDA-middle.jpg %})
+## Quickstart Guide
 
-please use the [issues tracking system](https://github.com/dennisppaul/klangstrom-arduino/issues) to submit bugs + feature requests.
+- install [Arduino IDE](https://www.arduino.cc/en/software/#ide)
+- install [STM32duino / Arduino_Core_STM32](https://github.com/stm32duino/Arduino_Core_STM32?tab=readme-ov-file#getting-started)
+- open console and copy-paste [klangstrom-arduino](https://github.com/Klangstrom/klangstrom-arduino) installer below:
 
-see [Getting Started]({{ site.baseurl }}{% link _manual/getting-started.md %}) for first steps.
+⚠️⚠️⚠️ WIP does not work ATM ⚠️⚠️⚠️
+```sh
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Klangstrom/klangstrom-arduino/main/install.sh)"
+```
+
+see [Installation](/installation) for detailed installatin instructions.
 
 ## Operation Manual
 
-<ul class="post-list">
-    {% assign items = site.manual | sort: 'index' %}
-    {% for page in items %}
-    <li>
-        <a href="{{ page.url | relative_url }}">{{ page.title }}</a>
-    </li>
-    {% endfor %}
-</ul>
+- see [Technical Specifications](/techspecs) for details on the technical details of the board
+- see [Design Principles](/design-principles) for more information on the design ideas behind *Klangstrom*
+- see [Getting Started]({{ site.baseurl }}{% link _manual/getting-started.md %}) for first steps
 
-## Klangstrom API Documentation
-
-<ul class="post-list">
-    {% assign items = site.libdoc | sort: 'index' %}
-    {% for page in items %}
-    <li>
-        <a href="{{ page.url | relative_url }}">{{ page.title }}</a>
-    </li>
-    {% endfor %}
-</ul>
+the project is hosted on GitHub at [Klangstrom](https://github.com/Klangstrom). some repositories require invitation. please use the [issues tracking system](https://github.com/dennisppaul/klangstrom-arduino/issues) to submit bugs + feature requests.
 
 <!-- 
 {%- if site.posts.size > 0 -%}
@@ -54,7 +47,4 @@ see [Getting Started]({{ site.baseurl }}{% link _manual/getting-started.md %}) f
     </ul>
 </div>
 {%- endif -%}
- -->
-
-
-<!-- ![KLST_all_boards]({{ site.baseurl }}{% link assets/KLST_all_boards.jpg %})-->
+-->
