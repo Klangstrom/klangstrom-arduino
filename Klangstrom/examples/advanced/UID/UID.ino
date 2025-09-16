@@ -51,7 +51,7 @@ void setup() {
 void loop() {}
 
 void display_update_event() {
-    draw_clear(GRAY(0x00));
+    draw_clear(KLST_DISPLAY_GRAY(0x00));
     draw_fill(color(0xFF));
     draw_set_background_color(color(0xFF, 0x00));
     const int line_height = 40;
