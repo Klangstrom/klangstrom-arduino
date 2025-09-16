@@ -1,6 +1,7 @@
 ---
 layout: page
 title: Design Principles
+abstract: more information on the design ideas behind *Klangstrom*
 permalink: /design-principles/
 index: 3
 ---

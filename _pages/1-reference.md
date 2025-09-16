@@ -4,6 +4,8 @@ title: Reference
 permalink: /reference/
 ---
 
+this reference is organzied around examples which can be found in the *Klangstrom* libraries folder `Klangstrom/examples/basic`.
+
 <ul class="post-list">
     {% assign items = site.libdoc | sort: 'index' %}
     {% for page in items %}

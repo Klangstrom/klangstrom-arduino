@@ -1,6 +1,7 @@
 ---
 layout: page
 title: Getting Started
+abstract: details on the technical details of the board
 permalink: /getting-started/
 index: 10
 ---

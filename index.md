@@ -21,9 +21,14 @@ see [Installation](/installation) for detailed installatin instructions.
 
 ## Operation Manual
 
-- see [Technical Specifications](/techspecs) for details on the technical details of the board
-- see [Design Principles](/design-principles) for more information on the design ideas behind *Klangstrom*
-- see [Getting Started]({{ site.baseurl }}{% link _manual/getting-started.md %}) for first steps
+<ul class="post-list">
+    {% assign items = site.manual | sort: 'index' %}
+    {% for page in items %}
+    <li>
+        <a href="{{ page.url | relative_url }}">{{ page.title }}</a> :: {{ page.abstract }}
+    </li>
+    {% endfor %}
+</ul>
 
 the project is hosted on GitHub at [Klangstrom](https://github.com/Klangstrom). some repositories require invitation. please use the [issues tracking system](https://github.com/dennisppaul/klangstrom-arduino/issues) to submit bugs + feature requests.
 
