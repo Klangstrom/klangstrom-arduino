@@ -2,7 +2,7 @@
 layout: libdoc
 title: Encoder
 permalink: /encoder/
-index: 7
+index: 15
 ---
 
 ```cpp

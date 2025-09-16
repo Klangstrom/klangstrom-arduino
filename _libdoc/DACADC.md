@@ -2,7 +2,7 @@
 layout: libdoc
 title: DAC+ADC
 permalink: /dacadc/
-index: 23
+index: 13
 ---
 
 ```cpp

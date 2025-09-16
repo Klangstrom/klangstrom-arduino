@@ -1,8 +1,8 @@
 ---
 layout: libdoc
-title: Application
+title: Basic Application Structure
 permalink: /application/
-index: 1
+index: 100
 ---
 
 *Klangstrom* supplies an application structure to facilitate the development of applications. 
