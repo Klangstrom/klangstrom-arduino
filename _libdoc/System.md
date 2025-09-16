@@ -47,3 +47,17 @@ AudioDevice*               system_init_audiocodec();
     #define KLST_PERIPHERAL_ENABLE_DISPLAY
     ```
 - GPIO?!?
+
+## Example
+
+```c
+#include "Arduino.h"
+#include "Klangstrom.h"
+#include "System.h"
+
+void setup() {
+    system_init();
+}
+
+void loop() {}
+```

@@ -6,13 +6,30 @@ permalink: /reference/
 
 this reference is organzied around examples which can be found in the *Klangstrom* libraries folder `Klangstrom/examples/basic`.
 
+## By Example
+
 <ul class="post-list">
-    {% assign items = site.libdoc | sort: 'index' %}
-    {% for page in items %}
-    <li>
-        <a href="{{ page.url | relative_url }}">{{ page.title }}</a>
-    </li>
-    {% endfor %}
+        {% assign items = site.libdoc | sort: 'index' %}
+        {% for page in items %}
+            {%- if page.index < 100 -%}
+                <li>
+                    <a href="{{ page.url | relative_url }}">{{ page.title }}</a>
+                </li>
+            {%- endif -%}
+        {% endfor %}
+</ul>
+
+## Environment
+
+<ul class="post-list">
+        {% assign items = site.libdoc | sort: 'index' %}
+        {% for page in items %}
+            {%- if page.index >= 100 -%}
+                <li>
+                    <a href="{{ page.url | relative_url }}">{{ page.title }}</a>
+                </li>
+            {%- endif -%}
+        {% endfor %}
 </ul>
 
 examples can be found in the *Klangstrom* library folder basic example sections:
