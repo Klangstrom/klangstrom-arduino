@@ -12,4 +12,4 @@ DST="$HOME/Documents/Arduino/libraries"
 echo
 echo "linking libraries from '$SRC' into '$DST'"
 echo 
-"$SCRIPT_PATH/link_libraries.sh" klangstrom-libraries.config $SRC $DST
+"$SCRIPT_PATH/link_libraries.sh" "$SCRIPT_PATH/klangstrom-libraries.config" $SRC $DST
