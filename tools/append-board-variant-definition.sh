@@ -2,7 +2,13 @@
 
 # append board definition e.g './append-board-variant-definition.sh ../variants/KLST_PANDA/KLST_PANDA-boards.txt'
 
-source stm32duino.config
+CONFIG_PATH="$(dirname "$0")/stm32duino.config"
+if [ -f "$CONFIG_PATH" ]; then
+    source "$CONFIG_PATH"
+else
+    echo "⚠️ stm32duino.config not found! Please run install-dependencies.sh first."
+    exit 1
+fi
 
 check_line_in_file() {
     local FILE="$1"

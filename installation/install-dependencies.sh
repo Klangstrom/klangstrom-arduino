@@ -99,3 +99,41 @@ case "$(uname -s)" in
     exit 1
     ;;
 esac
+
+
+
+
+# Determine platform
+OS="$(uname -s)"
+case "$OS" in
+    Linux*)     PLATFORM=linux;;
+    Darwin*)    PLATFORM=macos;;
+    *)          echo "Unsupported OS: $OS"; exit 1;;
+esac
+
+# Determine base Arduino package directory
+if [ "$PLATFORM" = "linux" ]; then
+    ARDUINO_BASE="$HOME/.arduino15/packages"
+else
+    ARDUINO_BASE="$HOME/Library/Arduino15/packages"
+fi
+
+# Find latest STM32Duino version
+STM32_DIR=$(find "$ARDUINO_BASE/stm32/hardware/stm32" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)
+
+if [ -z "$STM32_DIR" ]; then
+    echo "⚠️ Could not find STM32Duino hardware path under $ARDUINO_BASE"
+    exit 1
+fi
+
+# Create config file
+CONFIG_PATH="$(dirname "$0")/../tools/stm32duino.config"
+
+cat > "$CONFIG_PATH" <<EOF
+# Auto-generated on $(date)
+export ARDUINO_STM32DUINO_PLATFORM=$PLATFORM
+export ARDUINO_STM32DUINO_HARDWARE_PATH="$STM32_DIR"
+EOF
+
+echo "✅ Created stm32duino.config at: $CONFIG_PATH"
+
