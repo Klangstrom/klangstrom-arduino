@@ -62,7 +62,7 @@ is_raspberry_pi() {
 
 require_curl
 
-echo "-------------------------------"
+echo "-------------------------------------------"
 printf -- "--- platform: "
 
 case "$(uname -s)" in
