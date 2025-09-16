@@ -55,13 +55,6 @@ public:
         }
     }
 
-    void beat_timer_event(const Timer* timer) {
-        beat_counter++;
-        if (callback_beat != nullptr) {
-            callback_beat(device_id, beat_counter);
-        }
-    }
-
     void set_bpm(const float beats_per_minute) const {
         if (timer == nullptr) {
             return;
@@ -118,4 +111,11 @@ private:
     Callback_2_UI8_UI16 callback_beat;
     uint32_t            beat_counter;
     bool                fIsRunning;
+    
+    void beat_timer_event(const Timer* timer) {
+        beat_counter++;
+        if (callback_beat != nullptr) {
+            callback_beat(device_id, beat_counter);
+        }
+    }
 };

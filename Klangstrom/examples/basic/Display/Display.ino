@@ -23,15 +23,15 @@ void loop() {
 
 void display_touch_event(TouchEvent* touchevent) {
     for (int i = 0; i < touchevent->number_of_touches; ++i) {
-        draw_rect_fill(touchevent->x[i], touchevent->y[i], 8, 8, GRAY(0xFF));
+        draw_rect_fill(touchevent->x[i], touchevent->y[i], 8, 8, KLST_DISPLAY_GRAY(0xFF));
     }
 
     if (touchevent->number_of_touches == 4) {
-        draw_clear(GRAY(0x00));
+        draw_clear(KLST_DISPLAY_GRAY(0x00));
     }
 
     if (touchevent->number_of_touches == 5) {
-        draw_clear(RGB(0xFF, 0x80, 0x00));
+        draw_clear(KLST_DISPLAY_RGB(0xFF, 0x80, 0x00));
     }
 
     console_clear();
