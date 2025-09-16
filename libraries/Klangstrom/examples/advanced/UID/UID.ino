@@ -59,6 +59,5 @@ void display_update_event() {
         const std::string mUID = formatHex(system_get_UID(i));
         draw_text(20, 20 + line_height * i, mUID, 4);
     }
-    // to string
     draw_text(20, 20 + line_height * 3, std::to_string(system_get_UID_index()), 8);
 }

@@ -26,6 +26,10 @@ extern "C" {
 #endif
 
 static const int8_t KLST_LED_ALL = -1;
+static constexpr uint8_t LED_LEFT            = 0;
+static constexpr uint8_t LED_RIGHT           = 1;
+// static constexpr uint8_t LED_00              = LED_LEFT;
+// static constexpr uint8_t LED_01              = LED_RIGHT;
 
 typedef struct LED {
     float intensity;
