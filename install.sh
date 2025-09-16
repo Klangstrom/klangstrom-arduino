@@ -47,6 +47,13 @@ run_script() {
 }
 
 echo "---------------------------------"
+echo "--- installing dependencies"
+echo "---------------------------------"
+echo 
+fetch "${BASE_URL}/install-dependencies.sh" "$TMP_DEP"
+run_script "$TMP_DEP"
+echo
+echo "---------------------------------"
 echo "--- installing $PROJECT_NAME"
 echo "---------------------------------"
 echo
