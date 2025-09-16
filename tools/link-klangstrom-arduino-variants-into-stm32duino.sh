@@ -1,24 +1,16 @@
 #!/bin/zsh
-
 SCRIPT_PATH="$(cd "$(dirname "$0")" && pwd)"
 CONFIG_PATH="$SCRIPT_PATH/stm32duino.config"
-source "$SCRIPT_PATH/klangstrom-tools.config"
-KLST_TOOLS_PATH="$(cd "$SCRIPT_PATH/$KLST_TOOLS_PATH_RELATIVE" && pwd)"
-KLST_ARDUINO_PATH="$(cd "$SCRIPT_PATH/$KLST_ARDUINO_PATH_RELATIVE" && pwd)"
-VARIANTS_SOURCE_PATH="$KLST_ARDUINO_PATH/variants"
-
-echo "SCRIPT_PATH         : $SCRIPT_PATH"
-echo "KLST_TOOLS_PATH     : $KLST_TOOLS_PATH"
-echo "KLST_ARDUINO_PATH   : $KLST_ARDUINO_PATH"
-echo "VARIANTS_SOURCE_PATH: $VARIANTS_SOURCE_PATH"
-
-
 if [ -f "$CONFIG_PATH" ]; then
     source "$CONFIG_PATH"
 else
     echo "⚠️ stm32duino.config not found! Please run install-dependencies.sh first."
     exit 1
 fi
+source "$SCRIPT_PATH/klangstrom-tools.config"
+KLST_TOOLS_PATH="$SCRIPT_PATH/$KLST_TOOLS_PATH_RELATIVE"
+KLST_ARDUINO_PATH="$SCRIPT_PATH/$KLST_ARDUINO_PATH_RELATIVE"
+VARIANTS_SOURCE_PATH="$KLST_ARDUINO_PATH/variants"
 
 update_variant() {
     echo "======================="
@@ -30,7 +22,7 @@ update_variant() {
     echo "updating board definition +"
     "$SCRIPT_PATH/append-board-variant-definition.sh" "$VARIANT_PATH/$BOARD_FILE"
     echo "(re-)creating symlinks at : $ARDUINO_STM32DUINO_PATH"
-    "$SCRIPT_PATH/link_variant_files.sh" "$VARIANTS_SOURCE_PATH" "$ARDUINO_STM32DUINO_PATH"
+    "$SCRIPT_PATH/link_variant_files.sh" "$VARIANT_PATH/variant" "$ARDUINO_STM32DUINO_PATH"
 }
 
 echo "======================="
