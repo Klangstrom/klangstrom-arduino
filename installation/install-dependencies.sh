@@ -101,7 +101,7 @@ case "$(uname -s)" in
 esac
 
 
-
+echo "<---------------------- WIP --------------------->"
 
 # Determine platform
 OS="$(uname -s)"
@@ -119,7 +119,7 @@ else
 fi
 
 # Find latest STM32Duino version
-STM32_DIR=$(find "$ARDUINO_BASE/stm32/hardware/stm32" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)
+STM32_DIR=$(find "$ARDUINO_BASE/STMicroelectronics/hardware/stm32" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)
 
 if [ -z "$STM32_DIR" ]; then
     echo "⚠️ Could not find STM32Duino hardware path under $ARDUINO_BASE"
