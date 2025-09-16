@@ -126,14 +126,16 @@ if [ -z "$STM32_DIR" ]; then
     exit 1
 fi
 
-# Create config file
-CONFIG_PATH="$(dirname "$0")/../tools/stm32duino.config"
+echo "found STM32duino installation: $STM32_DIR"
 
-cat > "$CONFIG_PATH" <<EOF
-# Auto-generated on $(date)
-export ARDUINO_STM32DUINO_PLATFORM=$PLATFORM
-export ARDUINO_STM32DUINO_HARDWARE_PATH="$STM32_DIR"
-EOF
-
-echo "✅ Created stm32duino.config at: $CONFIG_PATH"
+# # Create config file
+# CONFIG_PATH="$(dirname "$0")/../tools/stm32duino.config"
+# 
+# cat > "$CONFIG_PATH" <<EOF
+# # Auto-generated on $(date)
+# export ARDUINO_STM32DUINO_PLATFORM=$PLATFORM
+# export ARDUINO_STM32DUINO_HARDWARE_PATH="$STM32_DIR"
+# EOF
+# 
+# echo "✅ Created stm32duino.config at: $CONFIG_PATH"
 
