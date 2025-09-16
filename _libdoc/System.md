@@ -5,15 +5,30 @@ permalink: /system/
 index: 101
 ---
 
-System
+`system_init()` should be called, before any other peripherals are initialized or used.
 
-```cpp
+```c
+void                       system_init()
+void                       system_register_audiodevice(AudioDevice* audiodevice)
+ArrayList_AudioDevicePtr*  system_get_registered_audiodevices()
+void                       system_register_serialdevice(SerialDevice* serialdevice)
+ArrayList_SerialDevicePtr* system_get_registered_serialdevices()
+void                       system_register_gpio_listener(GPIOListener* gpio_listener)
+ArrayList_GPIOListenerPtr* system_get_registered_gpio_listener()
+void                       system_register_timer(Timer* timer)
+ArrayList_TimerPtr*        system_get_registered_timer()
+uint16_t                   system_get_unique_device_ID()
+bool                       system_is_initialized()
+uint32_t                   system_get_ticks()
+void                       system_enable_cycle_counter(bool enable)
+void                       system_reset_cycles()
+uint32_t                   system_get_cycles()
+uint32_t                   system_clock_frequency()
+float                      system_cycles_to_micros(uint32_t cycles)
+AudioDevice*               system_init_audiocodec();
 ```
 
-- `System`
-    - `SystemUID` @NOTE(included in `System`)
-- `SystemBoot` @TODO(<- does this still work?)
-- `Klangstrom` ( "include 'Klangstrom.h' in every project" )
+- `system_jump_to_bootloader()` still working?
 - DEMO mit `PeripheralConfiguration_CUSTOM.h`?!? ( "activate specfic peripherals:" )
     ```c
     #define KLST_PERIPHERAL_ENABLE_GPIO
