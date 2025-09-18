@@ -57,6 +57,7 @@ AudioDevice* system_init_audiocodec() {
     if (audioinfo.device_id == AUDIO_DEVICE_INIT_ERROR) {
         console_error("error initializing audio device");
     }
+    audiodevice_pause(audiodevice);
     audiodevice_resume(audiodevice);
     return audiodevice;
 }

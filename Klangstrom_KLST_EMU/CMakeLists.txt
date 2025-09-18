@@ -20,4 +20,3 @@ target_include_directories(klangstrom_KLST_EMU PUBLIC
 target_compile_definitions(klangstrom_KLST_EMU PRIVATE KLST_ENV=${KLST_ENV})
 target_link_libraries(klangstrom_KLST_EMU PRIVATE klangstrom)
 target_link_libraries(klangstrom_KLST_EMU PRIVATE klangstrom-emulator)
-target_link_libraries(klangstrom_KLST_EMU PRIVATE umgebung-lib)

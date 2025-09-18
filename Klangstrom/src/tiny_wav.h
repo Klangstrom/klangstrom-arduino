@@ -311,6 +311,212 @@ static uint32_t wav_read_i16(wav_reader_t* w, int16_t* dst, uint32_t max_frames)
   return frames_done;
 }
 
+static uint32_t wav_num_frames(const wav_reader_t* w) {
+  if (w->bytes_per_frame == 0) return 0;
+  return w->data_size / w->bytes_per_frame;
+}
+
+// Convenience: read N frames and convert to float32 interleaved in [-1, 1].
+// Returns number of frames produced.
+static uint32_t wav_read_f32(wav_reader_t* w, float* dst, uint32_t max_frames) {
+  uint32_t bpf = w->bytes_per_frame;
+  if (bpf == 0) return 0;
+  uint32_t avail_frames = wav_bytes_remaining(w) / bpf;
+  if (max_frames > avail_frames) max_frames = avail_frames;
+  if (max_frames == 0) return 0;
+
+  // small stack buffer for MCUs
+  uint8_t buf[256];
+  uint32_t frames_done = 0;
+  const uint16_t ch = w->num_channels;
+
+  while (frames_done < max_frames) {
+    uint32_t to_do = max_frames - frames_done;
+    uint32_t frames_per_buf = sizeof(buf) / bpf;
+    if (frames_per_buf == 0) frames_per_buf = 1; // extremely large frames
+    if (to_do > frames_per_buf) to_do = frames_per_buf;
+    uint32_t bytes_need = to_do * bpf;
+    if (!wav_read_exact(w, buf, bytes_need)) break;
+
+    const uint8_t* p = buf;
+    for (uint32_t f = 0; f < to_do; ++f) {
+      for (uint16_t c = 0; c < ch; ++c) {
+        float out = 0.0f;
+        if (w->audio_format == 1) {
+          // PCM integer formats
+          if (w->bits_per_sample == 8) {
+            uint8_t v = *p++;
+            // map 0..255 to roughly -1..+1, with 128 -> ~0
+            out = ((float)((int32_t)v - 128)) / 128.0f;
+          } else if (w->bits_per_sample == 16) {
+            uint8_t b0 = *p++; uint8_t b1 = *p++;
+            int16_t v = (int16_t)(b0 | (b1 << 8));
+            out = (float)v / 32768.0f; // -32768 -> -1.0, 32767 -> ~+1.0
+          } else if (w->bits_per_sample == 24) {
+            uint32_t b0 = *p++, b1 = *p++, b2 = *p++;
+            int32_t v = (int32_t)((b2 << 24) | (b1 << 16) | (b0 << 8)); // sign in top byte
+            v >>= 8; // now a signed 24-bit in 32-bit container
+            out = (float)v / 8388608.0f; // 2^23
+          } else if (w->bits_per_sample == 32) {
+            uint8_t b0 = *p++, b1 = *p++, b2 = *p++, b3 = *p++;
+            int32_t v = (int32_t)((uint32_t)b0 | ((uint32_t)b1 << 8) | ((uint32_t)b2 << 16) | ((uint32_t)b3 << 24));
+            out = (float)v / 2147483648.0f; // 2^31
+          } else {
+            // unsupported integer depth
+            p += (w->bits_per_sample >> 3);
+            out = 0.0f;
+          }
+        } else if (w->audio_format == 3) {
+          // IEEE float 32-bit
+          if (w->bits_per_sample == 32) {
+            uint32_t u = (uint32_t)p[0] | ((uint32_t)p[1] << 8) | ((uint32_t)p[2] << 16) | ((uint32_t)p[3] << 24);
+            p += 4;
+            union { uint32_t u; float f; } cvt; cvt.u = u;
+            out = cvt.f;
+          } else {
+            p += (w->bits_per_sample >> 3);
+            out = 0.0f;
+          }
+        }
+        // clamp to safe range
+        if (out > 1.0f) out = 1.0f; else if (out < -1.0f) out = -1.0f;
+        *dst++ = out;
+      }
+    }
+    frames_done += to_do;
+  }
+  return frames_done;
+}
+
+// Convenience: read N frames as float32 and DEINTERLEAVE into per-channel buffers.
+// 'dst' is an array of channel pointers of length w->num_channels.
+// Each dst[c] must have space for at least max_frames samples.
+// Returns number of frames produced (same for every channel).
+static uint32_t wav_read_f32_deinterleaved(wav_reader_t* w, float** dst, uint32_t max_frames) {
+  if (!w || !dst) return 0;
+  const uint16_t ch = w->num_channels;
+  if (ch == 0) return 0;
+  uint32_t bpf = w->bytes_per_frame;
+  if (bpf == 0) return 0;
+  uint32_t avail_frames = wav_bytes_remaining(w) / bpf;
+  if (max_frames > avail_frames) max_frames = avail_frames;
+  if (max_frames == 0) return 0;
+
+  uint8_t buf[256];
+  uint32_t frames_done = 0;
+
+  while (frames_done < max_frames) {
+    uint32_t to_do = max_frames - frames_done;
+    uint32_t frames_per_buf = sizeof(buf) / bpf;
+    if (frames_per_buf == 0) frames_per_buf = 1;
+    if (to_do > frames_per_buf) to_do = frames_per_buf;
+    uint32_t bytes_need = to_do * bpf;
+    if (!wav_read_exact(w, buf, bytes_need)) break;
+
+    const uint8_t* p = buf;
+    for (uint32_t f = 0; f < to_do; ++f) {
+      uint32_t out_idx = frames_done + f;
+      for (uint16_t c = 0; c < ch; ++c) {
+        float out = 0.0f;
+        if (w->audio_format == 1) { // PCM ints
+          if (w->bits_per_sample == 8) {
+            uint8_t v = *p++;
+            out = ((float)((int32_t)v - 128)) / 128.0f;
+          } else if (w->bits_per_sample == 16) {
+            uint8_t b0 = *p++; uint8_t b1 = *p++;
+            int16_t v = (int16_t)(b0 | (b1 << 8));
+            out = (float)v / 32768.0f;
+          } else if (w->bits_per_sample == 24) {
+            uint32_t b0 = *p++, b1 = *p++, b2 = *p++;
+            int32_t v = (int32_t)((b2 << 24) | (b1 << 16) | (b0 << 8));
+            v >>= 8;
+            out = (float)v / 8388608.0f; // 2^23
+          } else if (w->bits_per_sample == 32) {
+            uint8_t b0 = *p++, b1 = *p++, b2 = *p++, b3 = *p++;
+            int32_t v = (int32_t)((uint32_t)b0 | ((uint32_t)b1 << 8) | ((uint32_t)b2 << 16) | ((uint32_t)b3 << 24));
+            out = (float)v / 2147483648.0f; // 2^31
+          } else { p += (w->bits_per_sample >> 3); out = 0.0f; }
+        } else if (w->audio_format == 3) { // IEEE float32
+          if (w->bits_per_sample == 32) {
+            uint32_t u = (uint32_t)p[0] | ((uint32_t)p[1] << 8) | ((uint32_t)p[2] << 16) | ((uint32_t)p[3] << 24);
+            p += 4;
+            union { uint32_t u; float f; } cvt; cvt.u = u;
+            out = cvt.f;
+          } else { p += (w->bits_per_sample >> 3); out = 0.0f; }
+        }
+        if (out > 1.0f) out = 1.0f; else if (out < -1.0f) out = -1.0f;
+        dst[c][out_idx] = out;
+      }
+    }
+    frames_done += to_do;
+  }
+  return frames_done;
+}
+
+// Also provide an int16 planar variant (deinterleaved per-channel).
+static uint32_t wav_read_i16_deinterleaved(wav_reader_t* w, int16_t** dst, uint32_t max_frames) {
+  if (!w || !dst) return 0;
+  const uint16_t ch = w->num_channels;
+  if (ch == 0) return 0;
+  uint32_t bpf = w->bytes_per_frame;
+  if (bpf == 0) return 0;
+  uint32_t avail_frames = wav_bytes_remaining(w) / bpf;
+  if (max_frames > avail_frames) max_frames = avail_frames;
+  if (max_frames == 0) return 0;
+
+  uint8_t buf[256];
+  uint32_t frames_done = 0;
+
+  while (frames_done < max_frames) {
+    uint32_t to_do = max_frames - frames_done;
+    uint32_t frames_per_buf = sizeof(buf) / bpf;
+    if (frames_per_buf == 0) frames_per_buf = 1;
+    if (to_do > frames_per_buf) to_do = frames_per_buf;
+    uint32_t bytes_need = to_do * bpf;
+    if (!wav_read_exact(w, buf, bytes_need)) break;
+
+    const uint8_t* p = buf;
+    for (uint32_t f = 0; f < to_do; ++f) {
+      uint32_t out_idx = frames_done + f;
+      for (uint16_t c = 0; c < ch; ++c) {
+        int16_t out = 0;
+        if (w->audio_format == 1) {
+          if (w->bits_per_sample == 8) {
+            uint8_t v = *p++;
+            out = (int16_t)((int32_t)v - 128) << 8;
+          } else if (w->bits_per_sample == 16) {
+            uint8_t b0 = *p++; uint8_t b1 = *p++;
+            out = (int16_t)(b0 | (b1 << 8));
+          } else if (w->bits_per_sample == 24) {
+            uint32_t b0 = *p++, b1 = *p++, b2 = *p++;
+            int32_t v = (int32_t)((b2 << 24) | (b1 << 16) | (b0 << 8));
+            out = (int16_t)(v >> 16);
+          } else if (w->bits_per_sample == 32) {
+            uint8_t b0 = *p++, b1 = *p++, b2 = *p++, b3 = *p++;
+            int32_t v = (int32_t)((uint32_t)b0 | ((uint32_t)b1 << 8) | ((uint32_t)b2 << 16) | ((uint32_t)b3 << 24));
+            if (v > 32767) v = 32767; else if (v < -32768) v = -32768;
+            out = (int16_t)v;
+          }
+        } else if (w->audio_format == 3) {
+          if (w->bits_per_sample != 32) { p += (w->bits_per_sample >> 3); out = 0; }
+          else {
+            uint32_t u = (uint32_t)p[0] | ((uint32_t)p[1] << 8) | ((uint32_t)p[2] << 16) | ((uint32_t)p[3] << 24);
+            p += 4;
+            union { uint32_t u; float f; } cvt; cvt.u = u;
+            float fv = cvt.f;
+            if (fv > 1.0f) fv = 1.0f; else if (fv < -1.0f) fv = -1.0f;
+            int32_t vi = (int32_t)(fv * 32767.0f);
+            out = (int16_t)vi;
+          }
+        }
+        dst[c][out_idx] = out;
+      }
+    }
+    frames_done += to_do;
+  }
+  return frames_done;
+}
+
 #ifdef __cplusplus
 }
 #endif
