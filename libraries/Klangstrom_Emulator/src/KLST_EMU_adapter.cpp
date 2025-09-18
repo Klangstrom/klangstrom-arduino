@@ -37,30 +37,37 @@ void klst_emulator_settings() {
 }
 
 void klst_emulator_setup() {
-    warning("INFO :: library implementation -> 'klst_emulator_setup()'");
+    console_once("INFO :: library implementation -> 'klst_emulator_setup()'");
     KlangstromEmulator::instance()->setup();
 }
 
 void klst_emulator_draw() {
+    console_once("INFO :: library implementation -> 'klst_emulator_draw()'");
     KlangstromEmulator::instance()->draw();
+}
+
+void klst_emulator_update() {
+    console_once("INFO :: library implementation -> 'klst_emulator_update()'");
+    KlangstromEmulator::instance()->update();
 }
 
 void klst_emulator_audioEvent() {
     if (a == nullptr) {
         return;
     }
+    warning_in_function_once("INFO :: library implementation -> 'klst_emulator_audioEvent()'");
     // TODO `audioblock` or `handle_audiodevice`
     // TODO rework this into single float array strcture like `umfeld`:
-    //      KlangstromEmulator::instance()->audioblock(a->input_buffer, a->output_buffer, a->buffer_size);
+    // KlangstromEmulator::instance()->audioblock(a->input_buffer, a->output_buffer, a->buffer_size);
 }
 
 void klst_emulator_keyPressed() {
-    warning("INFO :: library implementation -> 'klst_emulator_keyPressed()'");
+    console_once("INFO :: library implementation -> 'klst_emulator_keyPressed()'");
     KlangstromEmulator::instance()->keyPressed();
 }
 
 void klst_emulator_keyReleased() {
-    warning("INFO :: library implementation -> 'klst_emulator_keyReleased()'");
+    console_once("INFO :: library implementation -> 'klst_emulator_keyReleased()'");
     KlangstromEmulator::instance()->keyReleased();
 }
 

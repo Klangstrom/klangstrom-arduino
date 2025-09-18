@@ -7,15 +7,14 @@ if (NOT DEFINED KLST_ENV)
 endif ()
 
 file(GLOB EMU_SOURCE_FILES
-        "${CMAKE_CURRENT_SOURCE_DIR}/emulator/cores/sdl2/*.c"
-        "${CMAKE_CURRENT_SOURCE_DIR}/emulator/cores/sdl2/*.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
 )
 
 add_library(klangstrom-emulator ${EMU_SOURCE_FILES})
 
 target_include_directories(klangstrom-emulator PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/emulator/cores/sdl2
+        "${CMAKE_CURRENT_SOURCE_DIR}/src"
 )
 
 target_compile_definitions(klangstrom-emulator PRIVATE KLST_ENV=${KLST_ENV})
-target_link_libraries(klangstrom-emulator PRIVATE umgebung-lib)

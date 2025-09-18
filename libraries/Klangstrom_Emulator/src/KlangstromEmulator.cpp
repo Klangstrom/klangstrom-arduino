@@ -121,7 +121,7 @@ void umfeld::KlangstromEmulator::settings() {
     // TODO use KLST_EMU_AUDIO_BLOCK to configure audio
     // TODO use KLST_EMU_SAMPLE_RATE to configure audio
     audio(1, 2);
-    
+
     mOutputBuffers = new float*[audio_output_channels];
     for (int i = 0; i < audio_output_channels; i++) {
         mOutputBuffers[i] = new float[KLST_EMU_AUDIO_BLOCK];
@@ -156,24 +156,29 @@ void umfeld::KlangstromEmulator::draw() {
     }
 }
 
+void umfeld::KlangstromEmulator::update() {
+    loop();
+}
+
 // void KlangstromEmulator::process_device(KlangstromEmulatorAudioDevice* device) {
 //     client->process_device(device);
 // }
 
-static inline void copy_float_array_2D(float** src, float** dest, int rows, int cols) {
+static void copy_float_array_2D(float** src, float** dest, int rows, int cols) {
     for (int i = 0; i < rows; ++i) {
         memcpy(dest[i], src[i], cols * sizeof(float));
     }
 }
 bool umfeld::KlangstromEmulator::handle_audiodevice(float** input, float** output, int length, KlangstromEmulatorAudioDevice* device) {
     println("ERROR: emulator not handling audio devices … WIP");
-
-//     if (client == nullptr) {
-//         println("ERROR: client not initialized");
-//         return false;
-//     }
-//     return client->handle_audiodevice(input, output, length, device);
+    return false;
+    //     if (client == nullptr) {
+    //         println("ERROR: client not initialized");
+    //         return false;
+    //     }
+    //     return client->handle_audiodevice(input, output, length, device);
 }
+
 /**
  * called from umfeld to request and process audio data
  * @param input
@@ -227,9 +232,6 @@ void umfeld::KlangstromEmulator::keyPressed() {
         }
     }
 #endif // KLST_PANDA_EMU
-    if (key == 'q') {
-        exit();
-    }
 }
 
 void umfeld::KlangstromEmulator::keyReleased() {
@@ -377,11 +379,11 @@ void umfeld::KlangstromEmulator::delay_loop(uint32_t microseconds) {
 void umfeld::KlangstromEmulator::receive(const OscMessage& msg) {
     println("ERROR: emlator not handling OSC messages … WIP");
 
-//     if (client == nullptr) {
-//         println("ERROR: client not initialized");
-//         return;
-//     }
-//     client->receive(msg);
+    //     if (client == nullptr) {
+    //         println("ERROR: client not initialized");
+    //         return;
+    //     }
+    //     client->receive(msg);
 
     // //    println("app: received OSC message: ", msg.typetag());
     // ArrayList_SerialDevicePtr* sd = system_get_registered_serialdevices();

@@ -61,30 +61,30 @@ namespace umfeld {
         std::string       mFontPath = sketchPath();
         const std::string mFontName = "JetBrainsMonoNL-Light.ttf";
         PFont*            mFont     = nullptr;
-    
+
         // TODO clean up!!! e.g move to implementation
-    #ifdef KLST_EMULATE_SERIAL_VIA_OSC
+#ifdef KLST_EMULATE_SERIAL_VIA_OSC
         OSC mOSC{KLST_EMULATE_SERIAL_IP, KLST_EMULATE_SERIAL_TX, KLST_EMULATE_SERIAL_RX};
-    
+
         static bool evaluate_serial_msg(const OscMessage& msg, SerialDevice* device);
         void        receive(const OscMessage& msg) override;
-    
+
         void osc_setup() {
             mOSC.callback(this);
         }
-    
+
     public:
         template<typename... Args>
         void osc_send(const std::string& addr_pattern, Args... args) {
             mOSC.send(addr_pattern, args...);
         }
-    
+
         void osc_send(OscMessage msg) {
             mOSC.send(msg);
         }
-    
-    #endif // KLST_EMULATE_SERIAL_VIA_OSC
-    
+
+#endif // KLST_EMULATE_SERIAL_VIA_OSC
+
     public:
         ~KlangstromEmulator() override {
             for (const auto* device: fAudioDevices) {
@@ -92,12 +92,13 @@ namespace umfeld {
             }
             task.stop();
         }
-        
+
         static KlangstromEmulator* instance();
         void                       arguments(std::vector<std::string> args) override;
         void                       settings() override;
         void                       setup() override;
         void                       draw() override;
+        void                       update();
         bool                       handle_audiodevice(float** input, float** output, int length, KlangstromEmulatorAudioDevice* device);
         void                       audioblock(float** input, float** output, int length) override;
         void                       keyPressed() override;
@@ -118,7 +119,7 @@ namespace umfeld {
         int                        getHeight() override;
 
         static constexpr float DEFAULT_FONT_SIZE = 24;
-    
+
     private:
         static KlangstromEmulator*                  fInstance;
         PeriodicalTask                              task;
@@ -128,7 +129,7 @@ namespace umfeld {
         uint8_t                                     audio_device_id = 0;
         std::vector<KlangstromEmulatorAudioDevice*> fAudioDevices;
         KlangstromEmulatorClient*                   client = nullptr;
-    
+
         // static bool update_serial_data(SerialDevice* device, const char* msg_data, const int msg_data_length);
     };
-}
+} // namespace umfeld
