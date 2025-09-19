@@ -30,13 +30,16 @@
 #include "Key.h"
 #include "Key_EMU.h"
 #include "Console.h"
+#include "PGraphics.h"
 #include "stm32_hal.h"
+
+using namespace umfeld;
 
 class DrawableKey final : public Drawable {
 public:
     explicit DrawableKey(Key* key) : fKey(key) {
         fPositionX = oPositionX;
-        oPositionX += KlangstromEmulator::DEFAULT_FONT_SIZE;
+        oPositionX += umfeld::KlangstromEmulator::DEFAULT_FONT_SIZE;
     }
 
     void draw(PGraphics* g_ptr) override {

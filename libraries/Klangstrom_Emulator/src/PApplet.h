@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "Arduino.h"
+// #include "Arduino.h"
 
 namespace umfeld {
     class PApplet {
@@ -32,7 +32,7 @@ namespace umfeld {
         virtual void audioblock(float** input, float** output, int length) = 0;
         virtual void keyPressed() = 0;
         virtual void keyReleased() = 0;
-        virtual int  getWidth() = 0;
-        virtual int  getHeight() = 0;
+        virtual int  get_width() = 0;
+        virtual int  get_height() = 0;
     };
 }

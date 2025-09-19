@@ -26,6 +26,9 @@
 #include "SerialDevice.h"
 #include "KlangstromEmulator.h"
 
+#include "PGraphics.h"
+using namespace umfeld;
+
 class DrawableSerialDevice : public Drawable {
 public:
     DrawableSerialDevice(SerialDevice* serialdevice) : fSerialDevice(serialdevice) {}

@@ -46,16 +46,17 @@ bool WAVE::open(std::string& filename) {
             console_println("  Bytes per frame: %u", wav.bytes_per_frame);
             console_println("  Data offset    : %u", wav.data_offset);
             console_println("  Data size      : %u", wav.data_size);
+            console_println("  num_frames     : %u", wav_num_frames(&wav));
         } else {
             console_println("error parsing WAV file");
         }
     } else {
         console_println("error opening WAV file");
         _filename = "";
-        _is_open = false;
+        _is_open  = false;
         return false;
     }
-    _is_open = true;
+    _is_open  = true;
     _filename = filename;
     return true;
 }
@@ -65,27 +66,30 @@ bool WAVE::open(std::string& filename) {
  * and end of file is reached, it will continue reading from the beginning.
  * @returns number of samples read
  */
-uint32_t WAVE::load_samples(float* buffer, uint32_t num_samples) {
+uint32_t WAVE::load_samples(float* buffer, uint32_t num_frames) {
+    if (wav.num_channels > 1) {
+        console_println("WAVE::load_samples: warning: only mono WAV files are supported, but file has %u channels", wav.num_channels);
+    }
     if (!_is_open) {
         return 0;
     }
-    if (num_samples == 0) {
+    if (num_frames == 0) {
         return 0;
     }
     if (buffer == nullptr) {
         return 0;
     }
-    if (num_samples == ALL_SAMPLES) {
-        num_samples = wav.data_size / sizeof(float);;
+    if (num_frames == ALL_SAMPLES) {
+        num_frames = wav_num_frames(&wav);
     }
-    uint32_t _num_samples_read = wav_read_f32(&wav, buffer, num_samples);
-    // /* loop */
-    // if (_num_samples_read < num_samples && _is_looping) {
-    //     wav_seek_data_start(&wav);
-    //     _num_samples_read += wav_read_f32(&wav, buffer + _num_samples_read, num_samples - _num_samples_read);
-    //     /* if still not enough samples, the file is probably too short ... should this be commented or handled? */
-    // }
-    return _num_samples_read;
+    uint32_t _num_frames_read = wav_read_f32(&wav, buffer, num_frames);
+    /* loop */
+    if (_num_frames_read < num_frames && _is_looping) {
+        wav_seek_data_start(&wav);
+        _num_frames_read += wav_read_f32(&wav, buffer + _num_frames_read, num_frames - _num_frames_read);
+        /* if still not enough samples, the file is probably too short ... should this be commented or handled? */
+    }
+    return _num_frames_read;
 }
 
 void WAVE::close() {
@@ -93,7 +97,7 @@ void WAVE::close() {
     sdcard_file_close(); // TODO handle result?!?
 }
 
-bool WAVE::num_samples() {
+uint32_t WAVE::num_frames() {
     if (!_is_open) {
         return 0;
     }
@@ -101,6 +105,6 @@ bool WAVE::num_samples() {
 }
 
 wav_reader_t WAVE::wav;
-std::string WAVE::_filename;
-bool WAVE::_is_open = false;
-bool WAVE::_is_looping = false;
+std::string  WAVE::_filename;
+bool         WAVE::_is_open    = false;
+bool         WAVE::_is_looping = false;

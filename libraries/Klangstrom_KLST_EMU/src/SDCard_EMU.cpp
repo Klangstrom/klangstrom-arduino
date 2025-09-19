@@ -20,6 +20,8 @@
 #include "KlangstromEnvironment.h"
 #ifdef KLST_ARCH_IS_EMU
 
+#include "PGraphics.h"
+
 #include <string>
 #include "Console.h"
 #include "SDCard.h"
@@ -28,6 +30,9 @@
 #include "tinyfiledialogs.h"
 
 #include "KlangstromEmulator.h"
+
+#include "PGraphics.h"
+using namespace umfeld;
 
 static bool mCardDetected = true;
 static bool mMounted      = false;
@@ -101,7 +106,7 @@ bool sdcard_init() {
             return false;
         }
         initialized = true;
-        KlangstromEmulator::instance()->register_drawable(new DrawableSDCard());
+        umfeld::KlangstromEmulator::instance()->register_drawable(new DrawableSDCard());
         console_status("SDCard: set path to '%s'", mFolderPath);
         return true;
     }
