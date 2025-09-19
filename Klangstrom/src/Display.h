@@ -50,7 +50,7 @@
         (((rgba) & 0x0000FF00) << 8) | \
         (((rgba) & 0x000000FF) << 24)
 #define KLST_DISPLAY_ARGB_TO_ABGR(argb) (((argb & 0xFF000000)) | ((argb & 0x00FF0000) >> 16) | ((argb & 0x0000FF00)) | ((argb & 0x000000FF) << 16))
-#define ABGR_TO_ARGB(abgr) (((abgr & 0xFF000000)) | ((abgr & 0x00FF0000) >> 16) | ((abgr & 0x0000FF00)) | ((abgr & 0x000000FF) << 16))
+#define KLST_DISPLAY_ABGR_TO_ARGB(abgr) (((abgr & 0xFF000000)) | ((abgr & 0x00FF0000) >> 16) | ((abgr & 0x0000FF00)) | ((abgr & 0x000000FF) << 16))
 #define KLST_DISPLAY_RGB_ALPHA_TO_ARGB(rgb, alpha) \
     (((alpha) << 24) | ((rgb) & 0x00FFFFFF))
 #define KLST_DISPLAY_RGBA(r, g, b, a) \

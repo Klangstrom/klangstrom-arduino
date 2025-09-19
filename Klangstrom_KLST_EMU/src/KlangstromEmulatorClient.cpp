@@ -19,13 +19,16 @@
 
 #include "KlangstromEmulatorClient.h"
 #include "KlangstromEmulator.h"
-#include "PApplet.h"
 
 #include "AudioDevice.h"
 #include "AudioDevice_EMU.h"
 #include "SerialDevice.h"
 #include "System.h"
+
+#include "Umfeld.h"
 #include "Console.h"
+
+using namespace umfeld;
 
 void KlangstromEmulatorClient::process_device(KlangstromEmulatorAudioDevice* device) {
     // TODO check if we should use double buffering here or if we just use normal buffer i.e `CALLBACK_FULL_COMPLETE`
@@ -34,8 +37,8 @@ void KlangstromEmulatorClient::process_device(KlangstromEmulatorAudioDevice* dev
 
 bool KlangstromEmulatorClient::evaluate_serial_msg(const OscMessage& msg, SerialDevice* device) {
     //    println("app: evaluate_serial_msg");
-    if (PApplet::begins_with(msg.addrPattern(), KLST_EMU_SERIAL_ADDRESS_PATTERN)) {
-        if (PApplet::begins_with(msg.typetag(), KLST_EMU_SERIAL_TYPETAG)) {
+    if (begins_with(msg.addrPattern(), KLST_EMU_SERIAL_ADDRESS_PATTERN)) {
+        if (begins_with(msg.typetag(), KLST_EMU_SERIAL_TYPETAG)) {
             const int         msg_device_type = msg.get(KLST_EMU_SERIAL_DEVICE_MSG_POSITION_TYPE).intValue();
             const int         msg_device_id   = msg.get(KLST_EMU_SERIAL_DEVICE_MSG_POSITION_ID).intValue();
             const std::string msg_data_str    = msg.get(KLST_EMU_SERIAL_DEVICE_MSG_POSITION_DATA).stringValue();
@@ -100,16 +103,28 @@ bool KlangstromEmulatorClient::update_serial_data(SerialDevice* device, const ch
 }
 
 bool KlangstromEmulatorClient::handle_audiodevice(float** input, float** output, int length, KlangstromEmulatorAudioDevice* device) {
-    AudioBlock& audioblock = *device->get_audiodevice()->audioblock;
-    const int   block_size = audioblock.block_size;
+    if (device == nullptr) {
+        error_in_function("device not initialized");
+        return false;
+    }
+    if (device->get_audiodevice() == nullptr) {
+        error_in_function("audiodevice not initialized");
+        return false;
+    }
+    if (device->get_audiodevice()->audioblock == nullptr) {
+        error_in_function("audioblock not initialized");
+    }
+
+    const AudioBlock& audioblock = *device->get_audiodevice()->audioblock;
+    const int         block_size = audioblock.block_size;
 
     if (block_size > length) {
-        println("block size mismatch: reduce device block size (", block_size, ") to either equal or smaller multiple of ", length);
+        error("block size mismatch: reduce device block size (", block_size, ") to either equal or smaller multiple of ", length);
         return true;
     }
 
     if (length % block_size != 0) {
-        println("block size mismatch: device block size (", block_size, ") must be multiple of ", length);
+        error("block size mismatch: device block size (", block_size, ") must be multiple of ", length);
         return true;
     }
 
@@ -118,19 +133,27 @@ bool KlangstromEmulatorClient::handle_audiodevice(float** input, float** output,
     // TODO handle cases where number of output and input channels do not match.
     // TODO especially when device has or expects more channels than audio system
     if (audioblock.output_channels > audio_output_channels) {
-        println("output channels mismatch: device output channels (", static_cast<int>(audioblock.output_channels), ") must match audio system output channels (", audio_output_channels, ")");
+        error("output channels mismatch: device output channels (", static_cast<int>(audioblock.output_channels), ") must match audio system output channels (", audio_output_channels, ")");
         return true;
     }
 
     if (audioblock.input_channels > audio_input_channels && audioblock.input_channels > 2) {
-        println("input channels mismatch: device input channels (", static_cast<int>(audioblock.input_channels), ") must match audio system input channels (", audio_input_channels, ")");
+        error("input channels mismatch: device input channels (", static_cast<int>(audioblock.input_channels), ") must match audio system input channels (", audio_input_channels, ")");
         return true;
     }
 
-    const bool mIsPaused = device->get_audiodevice()->peripherals->is_paused;
-    if (mIsPaused) {
+    if (device->get_audiodevice()->peripherals->is_paused) {
         return true;
     }
+
+    // warning_in_function_once("audio system");
+    // console_once("audioblock block size     : ", audioblock.block_size);
+    // console_once("audioblock input channels : ", audioblock.input_channels);
+    // console_once("audioblock output channels: ", audioblock.output_channels);
+    // console_once("system block size         : ", umfeld::a->buffer_size);
+    // console_once("system input channels     : ", umfeld::a->input_channels);
+    // console_once("system output channels    : ", umfeld::a->output_channels);
+    // console_once("length / block_size       : ", length / block_size);
 
     /* process audio data ( if need be in multiple passes ) */
     const uint8_t mPasses = length / block_size;
@@ -138,8 +161,8 @@ bool KlangstromEmulatorClient::handle_audiodevice(float** input, float** output,
         for (int ch = 0; ch < audioblock.input_channels; ++ch) {
             // TODO if audio system ( i.e SDL ) provides only mono input,
             //  then we map all input channels to the same channel
-            int    actual_channel = audio_input_channels == 1 ? 0 : ch;
-            float* input_ptr      = input[actual_channel] + i * block_size;
+            const int    actual_channel = audio_input_channels == 1 ? 0 : ch;
+            const float* input_ptr      = input[actual_channel] + i * block_size;
             memcpy(audioblock.input[ch], input_ptr, block_size * sizeof(float));
         }
 

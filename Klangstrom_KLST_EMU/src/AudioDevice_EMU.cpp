@@ -24,66 +24,85 @@
 #include "Console.h"
 #include "KlangstromEmulator.h"
 
+#include "PGraphics.h"
+using namespace umfeld;
+
 class DrawableAudioDevice final : public Drawable {
 public:
     explicit DrawableAudioDevice(AudioDevice* audiodevice) : fAudioDevice(audiodevice) {}
 
     void draw(PGraphics* g_ptr) override {
-        PGraphics& g = *g_ptr;
+        if (g_ptr == nullptr) {
+            error_in_function("g_ptr is nullptr");
+            return;
+        }
+        if (fAudioDevice == nullptr) {
+            error_in_function("audio device is nullptr");
+            return;
+        }
+        if (fAudioDevice->peripherals == nullptr) {
+            error_in_function("audio device peripherals is nullptr");
+            return;
+        }
 
-        g.stroke(1.0f);
-        g.noFill();
-        g.pushMatrix();
-        g.translate(20, 200);
-        constexpr int   mStrafe = 16;
-        constexpr float mHeight = 150;
-        constexpr float mWidth  = 512 - 20;
+        PGraphics& graphics = *g_ptr;
+
+        graphics.stroke(1.0f);
+        graphics.noFill();
+        graphics.pushMatrix();
+        graphics.translate(20, 200);
+        constexpr int      mStrafe                    = 16;
+        constexpr float    mHeight                    = 150;
+        constexpr float    mWidth                     = 512 - 20;
+        constexpr uint16_t sample_frame_buffer_length = KLST_EMU_AUDIO_BLOCK;
 
         if (fAudioDevice->peripherals->is_paused) {
-            g.fill(1.0f);
-            g.textSize(KlangstromEmulator::DEFAULT_FONT_SIZE * 0.5f);
-            g.text("PAUSED", 3, -mHeight / 2 + KlangstromEmulator::DEFAULT_FONT_SIZE * 0.5f + 2);
-            g.noFill();
+            graphics.fill(1.0f);
+            graphics.noStroke();
+            graphics.textSize(KlangstromEmulator::DEFAULT_FONT_SIZE * 0.5f);
+            graphics.text("PAUSED", 3, -mHeight / 2 + KlangstromEmulator::DEFAULT_FONT_SIZE * 0.5f + 2);
+            graphics.noFill();
         }
 
         float** mBuffers = KlangstromEmulator::instance()->get_audio_output_buffers(); // TODO get buffer from each device
         for (int i = 0; i < audio_output_channels; i++) {
             const auto ii = static_cast<float>(i);
-            g.stroke(1, 0.5f);
-            g.rect(0, ii * mHeight - mHeight * 0.5f, mWidth, mHeight);
-            g.line(0, ii * mHeight, mWidth, ii * mHeight);
-            g.stroke(1.0f);
-            for (int j = mStrafe; j < DEFAULT_FRAMES_PER_BUFFER; j += mStrafe) {
+            graphics.stroke(1, 0.5f);
+            graphics.rect(0, ii * mHeight - mHeight * 0.5f, mWidth, mHeight);
+            graphics.line(0, ii * mHeight, mWidth, ii * mHeight);
+            graphics.stroke(1.0f);
+            for (int j = mStrafe; j < sample_frame_buffer_length; j += mStrafe) {
                 const float mSample0 = mBuffers[i][j - mStrafe] * 0.5f;
                 const float mSample1 = mBuffers[i][j] * 0.5f;
-                const float x0       = mWidth * (float) (j - mStrafe) / DEFAULT_FRAMES_PER_BUFFER;
+                const float x0       = mWidth * static_cast<float>(j - mStrafe) / sample_frame_buffer_length;
                 const float y0       = ii * mHeight + mSample0 * mHeight;
-                const float x1       = mWidth * (float) j / DEFAULT_FRAMES_PER_BUFFER;
+                const float x1       = mWidth * static_cast<float>(j) / sample_frame_buffer_length;
                 const float y1       = ii * mHeight + mSample1 * mHeight;
-                g.line(x0, y0, x1, y1);
-                g.line(x0, y0, x0, ii * mHeight);
+                graphics.line(x0, y0, x1, y1);
+                graphics.line(x0, y0, x0, ii * mHeight);
             }
         }
-        g.translate(0, mHeight * 2 + 10);
+
+        mBuffers = KlangstromEmulator::instance()->get_audio_input_buffers();
+        graphics.translate(0, mHeight * 2 + 10);
         for (int i = 0; i < audio_input_channels; i++) {
             const auto ii = static_cast<float>(i);
-            g.stroke(1, 0.5f);
-            g.rect(0, ii * mHeight - mHeight * 0.5f, mWidth, mHeight);
-            g.line(0, ii * mHeight, mWidth, ii * mHeight);
-            g.stroke(1.0f);
-            mBuffers = KlangstromEmulator::instance()->get_audio_input_buffers();
-            for (int j = mStrafe; j < DEFAULT_FRAMES_PER_BUFFER; j += mStrafe) {
+            graphics.stroke(1, 0.5f);
+            graphics.rect(0, ii * mHeight - mHeight * 0.5f, mWidth, mHeight);
+            graphics.line(0, ii * mHeight, mWidth, ii * mHeight);
+            graphics.stroke(1.0f);
+            for (int j = mStrafe; j < sample_frame_buffer_length; j += mStrafe) {
                 const float mSample0 = mBuffers[i][j - mStrafe] * 0.5f;
                 const float mSample1 = mBuffers[i][j] * 0.5f;
-                const float x0       = mWidth * static_cast<float>(j - mStrafe) / DEFAULT_FRAMES_PER_BUFFER;
+                const float x0       = mWidth * static_cast<float>(j - mStrafe) / sample_frame_buffer_length;
                 const float y0       = ii * mHeight + mSample0 * mHeight;
-                const float x1       = mWidth * static_cast<float>(j) / DEFAULT_FRAMES_PER_BUFFER;
+                const float x1       = mWidth * static_cast<float>(j) / sample_frame_buffer_length;
                 const float y1       = ii * mHeight + mSample1 * mHeight;
-                g.line(x0, y0, x1, y1);
-                g.line(x0, y0, x0, ii * mHeight);
+                graphics.line(x0, y0, x1, y1);
+                graphics.line(x0, y0, x0, ii * mHeight);
             }
         }
-        g.popMatrix();
+        graphics.popMatrix();
     }
 
 private:
@@ -94,44 +113,68 @@ private:
 extern "C" {
 #endif
 
-void audiodevice_resume(AudioDevice* audiodevice) {
+void audiodevice_resume(const AudioDevice* audiodevice) {
+    if (audiodevice == nullptr) {
+        error_in_function("audiodevice is nullptr");
+        return;
+    }
     audiodevice->peripherals->is_paused = false;
 }
 
-void audiodevice_pause(AudioDevice* audiodevice) {
+void audiodevice_pause(const AudioDevice* audiodevice) {
+    if (audiodevice == nullptr) {
+        error_in_function("audiodevice is nullptr");
+        return;
+    }
     audiodevice->peripherals->is_paused = true;
 }
 
-void audiodevice_deinit_BSP(AudioDevice* audiodevice) {
+void audiodevice_deinit_BSP(const AudioDevice* audiodevice) {
     (void) audiodevice;
 }
 
 void audiodevice_init_peripherals_BSP(AudioDevice* audiodevice) {
+    if (audiodevice == nullptr) {
+        error_in_function("audiodevice is nullptr");
+        return;
+    }
     audiodevice->peripherals = new AudioDevicePeripherals();
 }
 
 void audiodevice_deinit_peripherals_BSP(AudioDevice* audiodevice) {
+    if (audiodevice == nullptr) {
+        error_in_function("audiodevice is nullptr");
+        return;
+    }
     delete audiodevice->peripherals;
     audiodevice->peripherals = nullptr;
 }
 
-static void rx_input_callback(AudioDevice* audiodevice, uint8_t callback_type) {
+static void rx_input_callback(const AudioDevice* audiodevice, const uint8_t callback_type) {
+    if (audiodevice == nullptr) {
+        error_in_function("audiodevice is nullptr");
+        return;
+    }
     if (callback_type == CALLBACK_FULL_COMPLETE) {
     } else if (callback_type == CALLBACK_HALF_COMPLETE) {
     }
     (void) audiodevice; // TODO maybe copy input data to audioblock?
 }
 
-static void tx_output_callback(AudioDevice* audiodevice, const uint8_t callback_type) {
+static void tx_output_callback(const AudioDevice* audiodevice, const uint8_t callback_type) {
+    if (audiodevice == nullptr) {
+        error_in_function("audiodevice is nullptr");
+        return;
+    }
     if (callback_type == CALLBACK_FULL_COMPLETE) {
     } else if (callback_type == CALLBACK_HALF_COMPLETE) {
     }
-    if (audiodevice != nullptr && audiodevice->callback_audioblock != nullptr) {
+    if (audiodevice->callback_audioblock != nullptr) {
         audiodevice->callback_audioblock(audiodevice->audioblock);
     }
 }
 
-static void error_callback(AudioDevice* audiodevice, uint8_t callback_type) {
+static void error_callback(const AudioDevice* audiodevice, const uint8_t callback_type) {
     (void) audiodevice;
     (void) callback_type;
     console_error("error in audio device");
@@ -139,6 +182,14 @@ static void error_callback(AudioDevice* audiodevice, uint8_t callback_type) {
 
 void audiodevice_init_device_BSP(AudioDevice* audiodevice) {
     static bool initialized = false;
+    if (audiodevice == nullptr) {
+        error_in_function("audiodevice is nullptr");
+        return;
+    }
+    if (audiodevice->peripherals == nullptr) {
+        error_in_function("audiodevice peripherals is nullptr");
+        return;
+    }
     if (!initialized) {
         initialized                              = true;
         audiodevice->peripherals->callback_rx    = rx_input_callback;

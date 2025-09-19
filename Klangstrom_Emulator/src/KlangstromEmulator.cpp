@@ -49,7 +49,7 @@ static void sketch_loop() {
 
 umfeld::KlangstromEmulator* umfeld::KlangstromEmulator::fInstance = nullptr;
 
-void umfeld::KlangstromEmulator::arguments(std::vector<std::string> args) {
+void umfeld::KlangstromEmulator::arguments(const std::vector<std::string> args) {
     for (auto& s: args) {
         println("> ", s);
         if (begins_with(s, "--fontpath=")) {
@@ -59,11 +59,11 @@ void umfeld::KlangstromEmulator::arguments(std::vector<std::string> args) {
     }
 }
 
-int umfeld::KlangstromEmulator::getWidth() {
+int umfeld::KlangstromEmulator::get_width() {
     return umfeld::width;
 }
 
-int umfeld::KlangstromEmulator::getHeight() {
+int umfeld::KlangstromEmulator::get_height() {
     return umfeld::height;
 }
 
@@ -87,6 +87,8 @@ void umfeld::KlangstromEmulator::setup() {
             font_file = mFontPath + "/" + mFontName;
         } else if (file_exists(mFontPath + "/../" + mFontName)) {
             font_file = mFontPath + "/../" + mFontName;
+        } else if (file_exists(mFontPath + "/data/" + mFontName)) {
+            font_file = mFontPath + "/data/" + mFontName;
         }
         println("font file : ", font_file);
     }
@@ -98,7 +100,9 @@ void umfeld::KlangstromEmulator::setup() {
         println("could not load font: ",
                 (mFontPath + "/" + mFontName),
                 " or ",
-                (mFontPath + "/../" + mFontName)
+                (mFontPath + "/../" + mFontName),
+                " or ",
+                (mFontPath + "/data/" + mFontName)
 #ifdef KLST_EMULATOR_FONT_PATH
                     ,
                 " or ",
@@ -116,11 +120,21 @@ void umfeld::KlangstromEmulator::setup() {
 }
 
 void umfeld::KlangstromEmulator::settings() {
+    run_update_in_thread = true;
+
     // TODO this needs to be handled BETTER:
     size(KLST_EMU_SCREEN_WIDTH, KLST_EMU_SCREEN_HEIGHT);
     // TODO use KLST_EMU_AUDIO_BLOCK to configure audio
     // TODO use KLST_EMU_SAMPLE_RATE to configure audio
-    audio(1, 2);
+    // audio(2, 2);
+    subsystem_audio = umfeld_create_subsystem_audio_portaudio();
+    audio(KLST_EMU_AUDIO_INPUT_CHANNELS,
+          KLST_EMU_AUDIO_OUTPUT_CHANNELS,
+          KLST_EMU_SAMPLE_RATE,
+          KLST_EMU_AUDIO_BLOCK,
+          KLST_EMU_AUDIO_INPUT_DEVICE,
+          KLST_EMU_AUDIO_OUTPUT_DEVICE,
+          KLST_EMU_AUDIO_THREADED);
 
     mOutputBuffers = new float*[audio_output_channels];
     for (int i = 0; i < audio_output_channels; i++) {
@@ -151,12 +165,13 @@ void umfeld::KlangstromEmulator::draw() {
     textSize(DEFAULT_FONT_SIZE);
     text(get_emulator_name(), 25, 10 + DEFAULT_FONT_SIZE);
 
-    for (auto& drawable: drawables) {
+    for (const auto& drawable: drawables) {
         drawable->draw(g);
     }
 }
 
 void umfeld::KlangstromEmulator::update() {
+    // TODO only call loop if not delayed
     loop();
 }
 
@@ -164,19 +179,18 @@ void umfeld::KlangstromEmulator::update() {
 //     client->process_device(device);
 // }
 
-static void copy_float_array_2D(float** src, float** dest, int rows, int cols) {
+static void copy_float_array_2D(float** src, float** dest, const int rows, const int cols) {
     for (int i = 0; i < rows; ++i) {
         memcpy(dest[i], src[i], cols * sizeof(float));
     }
 }
-bool umfeld::KlangstromEmulator::handle_audiodevice(float** input, float** output, int length, KlangstromEmulatorAudioDevice* device) {
-    println("ERROR: emulator not handling audio devices … WIP");
-    return false;
-    //     if (client == nullptr) {
-    //         println("ERROR: client not initialized");
-    //         return false;
-    //     }
-    //     return client->handle_audiodevice(input, output, length, device);
+
+bool umfeld::KlangstromEmulator::handle_audiodevice(float** input, float** output, const int length, KlangstromEmulatorAudioDevice* device) {
+    if (client == nullptr) {
+        error_in_function("client not initialized");
+        return false;
+    }
+    return client->handle_audiodevice(input, output, length, device);
 }
 
 /**
@@ -185,9 +199,9 @@ bool umfeld::KlangstromEmulator::handle_audiodevice(float** input, float** outpu
  * @param output
  * @param length
  */
-void umfeld::KlangstromEmulator::audioblock(float** input, float** output, int length) {
+void umfeld::KlangstromEmulator::audioblock(float** input, float** output, const int length) {
     if (fAudioDevices.size() > 1) {
-        println("multiple audio devices detected. currently only one device supported. only the last audio device will be audible ...");
+        warning_in_function_once("multiple audio devices detected. currently only one device supported. only the last audio device will be audible ...");
     }
 
     for (int ch = 0; ch < audio_output_channels; ++ch) {
@@ -197,6 +211,18 @@ void umfeld::KlangstromEmulator::audioblock(float** input, float** output, int l
     for (auto* device: fAudioDevices) {
         if (handle_audiodevice(input, output, length, device)) {
             continue;
+        }
+    }
+
+    /* sanitze and clamp output samples */
+    for (int ch = 0; ch < audio_output_channels; ++ch) {
+        for (int i = 0; i < length; i++) {
+            constexpr float audio_sample_clamp_range = 0.95f;
+            // NOTE clamp to [-1.0, 1.0]
+            float s       = output[ch][i];
+            s             = std::isnan(s) ? 0.0f : s;
+            s             = std::max(-audio_sample_clamp_range, std::min(audio_sample_clamp_range, s));
+            output[ch][i] = s;
         }
     }
 
@@ -287,7 +313,7 @@ void umfeld::KlangstromEmulator::unregister_drawable(Drawable* drawable) {
 }
 
 uint8_t umfeld::KlangstromEmulator::unregister_audio_device(AudioDevice* audiodevice) {
-    println("TODO unregister audio device at emulator");
+    warning("TODO unregister audio device at emulator");
     return 0;
 }
 
@@ -304,18 +330,37 @@ uint8_t umfeld::KlangstromEmulator::register_serial_device(SerialDevice* seriald
     //    fAudioDevices.push_back(mAudioDevice);
     //    audio_device_id++;
     //    return mAudioDevice->get_id();
-    println("TODO register serial device at emulator");
+    warning("TODO register serial device at emulator");
     return 0;
 }
 
 uint8_t umfeld::KlangstromEmulator::unregister_serial_device(SerialDevice* serialdevice) {
-    println("TODO unregister serial device at emulator");
+    warning("TODO unregister serial device at emulator");
     return 0;
 }
 
-void umfeld::KlangstromEmulator::delay_loop(uint32_t microseconds) {
+void umfeld::KlangstromEmulator::delay_loop(const uint32_t microseconds) {
     //    task.sleep_for(microseconds); // TODO check what s the problem with this
-    std::this_thread::sleep_for(std::chrono::microseconds(microseconds));
+    // std::this_thread::sleep_for(std::chrono::microseconds(microseconds)); // NOTE this stalls the entire system
+
+    // Cooperative delay: break into small slices to keep SDL responsive
+    using clock    = std::chrono::steady_clock;
+    const auto end = clock::now() + std::chrono::microseconds(microseconds);
+
+    // Slice length ~0.1 ms; adjust as needed
+    // constexpr auto slice = std::chrono::milliseconds(1);
+    constexpr auto slice = std::chrono::microseconds(100);
+
+    while (clock::now() < end) {
+        // Let SDL process events and render between slices
+        // ... existing code ...
+        // If you have a centralized place that already pumps SDL each frame,
+        // you can call a lightweight tick here, e.g.:
+        // this->update(); // if appropriate
+        // this->redraw(); // if appropriate
+        // ... existing code ...
+        std::this_thread::sleep_for(slice);
+    }
 }
 
 // bool KlangstromEmulator::update_serial_data(SerialDevice* device, const char* msg_data, const int msg_data_length) {
@@ -377,7 +422,7 @@ void umfeld::KlangstromEmulator::delay_loop(uint32_t microseconds) {
 // }
 
 void umfeld::KlangstromEmulator::receive(const OscMessage& msg) {
-    println("ERROR: emlator not handling OSC messages … WIP");
+    error("emulator not handling OSC messages … WIP");
 
     //     if (client == nullptr) {
     //         println("ERROR: client not initialized");

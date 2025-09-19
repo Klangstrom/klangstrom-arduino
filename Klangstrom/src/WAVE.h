@@ -27,19 +27,19 @@ class WAVE {
 public:
     static const uint32_t ALL_SAMPLES = 0xFFFFFFFF;
 
-    static bool open(std::string& filename);
-    static uint32_t load_samples(float* buffer, uint32_t num_samples);
-    static void close();
-    static bool is_open() { return _is_open; }
-    static bool looping(bool loop) {
+    static bool     open(std::string& filename);
+    static uint32_t load_samples(float* buffer, uint32_t num_frames);
+    static void     close();
+    static bool     is_open() { return _is_open; }
+    static bool     looping(const bool loop) {
         _is_looping = loop;
         return _is_looping;
     }
-    static bool num_samples();
+    static uint32_t num_frames();
 
 private:
-    static std::string _filename;
+    static std::string  _filename;
     static wav_reader_t wav;
-    static bool _is_open;
-    static bool _is_looping;
+    static bool         _is_open;
+    static bool         _is_looping;
 };

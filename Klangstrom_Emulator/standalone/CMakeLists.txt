@@ -1,65 +1,133 @@
 cmake_minimum_required(VERSION 3.15)
 
-project(klangstrom-emulator-standalone)
+project(klangstrom-emulator-standalone LANGUAGES C CXX)
 
-set(UMFELD_ARDUINO_PATH "/Users/dennisppaul/Documents/dev/umfeld/git/umfeld-arduino/umfeld")
+# -------------------------
+# Configurable options
+# -------------------------
+
+set(HOME_DIR $ENV{HOME})
+set(UMFELD_PATH $ENV{UMFELD_PATH})
+if(NOT DEFINED ENV{UMFELD_PATH} OR "$ENV{UMFELD_PATH}" STREQUAL "")
+    message(STATUS "UMFELD_PATH environment variable is not set.")
+endif()
+
+#set(UMFELD_ARDUINO_PATH "${UMFELD_PATH}" CACHE PATH "Path to 'umfeld-arduino/umfeld' root")
+set(UMFELD_ARDUINO_PATH "${HOME_DIR}/Documents/dev/umfeld/git/umfeld-arduino/umfeld" CACHE PATH "Path to 'umfeld-arduino/umfeld' root") # TODO this needs to handled differently
+set(KLST_ENV "0x46" CACHE STRING "Klangstrom environment code")
+set(KLST_EMU_AUDIO_BLOCK "2048" CACHE STRING "Audio block size for emulator")
+set(VARIANT_H "variant_KLST_Emulator.h" CACHE STRING "Variant header filename")
+
+if (NOT UMFELD_ARDUINO_PATH)
+    message(FATAL_ERROR "UMFELD_ARDUINO_PATH is not set. Pass -DUMFELD_ARDUINO_PATH=/path/to/umfeld-arduino/umfeld")
+endif ()
+
 set(KLST_EMU_UMFELD_PATH "${UMFELD_ARDUINO_PATH}/cores/sdl/umfeld")
 set(KLST_EMU_VARIANT_PATH "${UMFELD_ARDUINO_PATH}/variants/KLST_EMU")
-set(KLST_ENV 0x46)
 
 message(STATUS "----------------------------------------")
 message(STATUS "Klangstrom Emulator Standalone")
 message(STATUS "----------------------------------------")
+message(STATUS "UMFELD_PATH          : ${UMFELD_PATH}")
 message(STATUS "UMFELD_ARDUINO_PATH  : ${UMFELD_ARDUINO_PATH}")
 message(STATUS "KLST_EMU_UMFELD_PATH : ${KLST_EMU_UMFELD_PATH}")
 message(STATUS "KLST_EMU_VARIANT_PATH: ${KLST_EMU_VARIANT_PATH}")
 message(STATUS "KLST_ENV             : ${KLST_ENV}")
+message(STATUS "KLST_EMU_AUDIO_BLOCK : ${KLST_EMU_AUDIO_BLOCK}")
 message(STATUS "----------------------------------------")
 
+# -------------------------
+# Language / features
+# -------------------------
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+# Modern alternative to set(CMAKE_CXX_STANDARD ...):
+# target_compile_features(target PRIVATE cxx_std_17)
 
-file(GLOB SOURCE_FILES
-        "src/*.c"
-        "src/*.cpp"
-)
-file(GLOB KLST_EMU_VARIANT_SOURCES
-        "${KLST_EMU_VARIANT_PATH}/*.c"
-        "${KLST_EMU_VARIANT_PATH}/*.cpp"
-)
-add_executable(${PROJECT_NAME} ${SOURCE_FILES} ${KLST_EMU_VARIANT_SOURCES})
-target_include_directories(${PROJECT_NAME} PRIVATE "${KLST_EMU_VARIANT_PATH}")
-target_include_directories(${PROJECT_NAME} PRIVATE "${KLST_EMU_UMFELD_PATH}/..")
-target_include_directories(${PROJECT_NAME} PRIVATE "src/.")
-
-# set definitions
-
-target_compile_definitions(${PROJECT_NAME} PUBLIC
+# -------------------------
+# Common interface options (DRY)
+# -------------------------
+add_library(klst_common_options INTERFACE)
+target_compile_definitions(klst_common_options INTERFACE
         UMFELD_SET_DEFAULT_CALLBACK=0
         BOARD_NAME_KLST_EMU
         KLST_ENV=${KLST_ENV}
-        VARIANT_H="variant_KLST_Emulator.h"
-        KLST_EMU_AUDIO_BLOCK=2048
+        KLST_EMU_AUDIO_BLOCK=${KLST_EMU_AUDIO_BLOCK}
+        VARIANT_H="${VARIANT_H}"
 )
-
-# add umfeld
-
-add_subdirectory("${KLST_EMU_UMFELD_PATH}" ${CMAKE_BINARY_DIR}/umfeld-lib-${PROJECT_NAME})
-add_umfeld_libs()
-target_link_libraries(${PROJECT_NAME} PRIVATE umfeld-lib-interface umfeld-lib)
-target_compile_definitions(umfeld-lib PRIVATE
-        UMFELD_SET_DEFAULT_CALLBACK=0
+target_include_directories(klst_common_options INTERFACE
+        "$<BUILD_INTERFACE:${KLST_EMU_VARIANT_PATH}>"
+        "$<BUILD_INTERFACE:${KLST_EMU_UMFELD_PATH}/..>"
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>"
 )
+# Mark third-party includes as SYSTEM if desired:
+# target_include_directories(klst_common_options SYSTEM INTERFACE "${KLST_EMU_UMFELD_PATH}/..")
 
-# add Klangstrom_Emulator
+# -------------------------
+# Executable and sources
+# -------------------------
+add_executable(${PROJECT_NAME})
 
-add_subdirectory(".." ${CMAKE_BINARY_DIR}/klangstrom-emulator-lib-${PROJECT_NAME})
-target_compile_definitions(klangstrom-emulator PRIVATE
-        KLST_ENV=${KLST_ENV}
-        VARIANT_H="variant_KLST_Emulator.h"
-        KLST_EMU_AUDIO_BLOCK=2048
+# Keep GLOB but make it reactive; or replace with explicit list if you prefer stricter control.
+file(GLOB SRC CONFIGURE_DEPENDS
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
+        "${KLST_EMU_VARIANT_PATH}/*.c"
+        "${KLST_EMU_VARIANT_PATH}/*.cpp"
 )
-target_include_directories(klangstrom-emulator PRIVATE "${KLST_EMU_UMFELD_PATH}/..")
-target_include_directories(klangstrom-emulator PRIVATE "${KLST_EMU_VARIANT_PATH}")
-target_link_libraries(klangstrom-emulator PRIVATE umfeld-lib-interface umfeld-lib)
-target_link_libraries(${PROJECT_NAME} PRIVATE klangstrom-emulator)
+target_sources(${PROJECT_NAME} PRIVATE ${SRC})
+target_link_libraries(${PROJECT_NAME} PRIVATE klst_common_options)
+
+# -------------------------
+# Dependencies
+# -------------------------
+# Umfeld
+if (EXISTS "${KLST_EMU_UMFELD_PATH}/CMakeLists.txt")
+    add_subdirectory("${KLST_EMU_UMFELD_PATH}" ${CMAKE_BINARY_DIR}/umfeld-lib-${PROJECT_NAME} EXCLUDE_FROM_ALL)
+    add_umfeld_libs()
+    # If you need the same options while compiling the lib itself:
+    if (TARGET umfeld-lib)
+        target_link_libraries(umfeld-lib PRIVATE klst_common_options)
+    endif ()
+    # NOTE linking library below is handled in `add_umfeld_libs()` ( as well as a few other things )
+    #    if (TARGET umfeld-lib-interface)
+    #        target_link_libraries(${PROJECT_NAME} PRIVATE umfeld-lib-interface umfeld-lib)
+    #    endif ()
+else ()
+    message(FATAL_ERROR "Umfeld path not found: ${KLST_EMU_UMFELD_PATH}")
+endif ()
+
+# Klangstrom_Emulator (parent dir)
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../CMakeLists.txt")
+    add_subdirectory(".." ${CMAKE_BINARY_DIR}/klangstrom-emulator-lib-${PROJECT_NAME} EXCLUDE_FROM_ALL)
+    if (TARGET klangstrom-emulator)
+        target_link_libraries(klangstrom-emulator PRIVATE klst_common_options umfeld-lib-interface umfeld-lib)
+        target_link_libraries(${PROJECT_NAME} PRIVATE klangstrom-emulator)
+    endif ()
+else ()
+    message(WARNING "Klangstrom_Emulator not found adjacent to this project.")
+endif ()
+
+# Klangstrom_KLST_EMU
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../../Klangstrom_KLST_EMU/CMakeLists.txt")
+    add_subdirectory("../../Klangstrom_KLST_EMU" ${CMAKE_BINARY_DIR}/klangstrom_KLST_EMU-lib-${PROJECT_NAME} EXCLUDE_FROM_ALL)
+    if (TARGET klangstrom_KLST_EMU)
+        target_link_libraries(klangstrom_KLST_EMU PRIVATE klst_common_options umfeld-lib-interface umfeld-lib)
+        target_link_libraries(${PROJECT_NAME} PRIVATE klangstrom_KLST_EMU)
+    endif ()
+else ()
+    message(WARNING "Klangstrom_KLST_EMU not found at ../../Klangstrom_KLST_EMU")
+endif ()
+
+# Klangstrom
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../../Klangstrom/CMakeLists.txt")
+    add_subdirectory("../../Klangstrom" ${CMAKE_BINARY_DIR}/klangstrom-lib-${PROJECT_NAME} EXCLUDE_FROM_ALL)
+    if (TARGET klangstrom)
+        target_link_libraries(klangstrom PRIVATE klangstrom_KLST_EMU)
+        target_link_libraries(${PROJECT_NAME} PRIVATE klangstrom)
+    endif ()
+else ()
+    message(WARNING "Klangstrom not found at ../../Klangstrom")
+endif ()
