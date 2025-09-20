@@ -23,8 +23,25 @@
 #include <cmath>
 
 #include "Arduino.h"
-#include "ArduinoFunctions.h"
 #include "KlangstromEmulator.h"
+
+template<typename T>
+T abs(T value);
+template<typename T>
+T constrain(T value, T min, T max) {
+    if (value < min) return min;
+    if (value > max) return max;
+    return value;
+}
+long map(long value, long fromLow, long fromHigh, long toLow, long toHigh);
+template<typename T>
+T max(T a, T b) { return (a > b) ? a : b; }
+template<typename T>
+T      min(T a, T b) { return (a < b) ? a : b; }
+double pow(double base, double exponent); // from cmath
+template<typename T>
+T      sq(T value) { return value * value; }
+double sqrt(double value); // from cmath
 
 void delay(uint32_t milliseconds) {
     umfeld::KlangstromEmulator::instance()->delay_loop(milliseconds * 1000);

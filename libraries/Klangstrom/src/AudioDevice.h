@@ -58,7 +58,7 @@ typedef struct AudioDevice {
     Callback_1_AUDIOBLOCKPTR callback_audioblock = nullptr;
 } AudioDevice;
 
-typedef void (*Callback_2_AUDIODEVICE_UI8)(const AudioDevice*, uint8_t);
+typedef void (*Callback_2_AUDIODEVICE_UI8)(AudioDevice*, uint8_t);
 
 /**
  * callback to be implemented by client application
@@ -76,15 +76,15 @@ WEAK void audioblock(AudioBlock* audio_block);
  */
 AudioDevice* audiodevice_init_audiocodec(AudioInfo* audioinfo);
 void         audiodevice_deinit(AudioDevice* audiodevice);
-void         audiodevice_resume(const AudioDevice* audiodevice);
-void         audiodevice_pause(const AudioDevice* audiodevice);
+void         audiodevice_resume(AudioDevice* audiodevice);
+void         audiodevice_pause(AudioDevice* audiodevice);
 void         audiodevice_setup_device(AudioDevice* audiodevice);
 AudioDevice* audiodevice_create_from_audioinfo(AudioInfo* audioinfo);
 
 void audiodevice_init_peripherals_BSP(AudioDevice* audiodevice);
 void audiodevice_deinit_peripherals_BSP(AudioDevice* audiodevice);
 void audiodevice_init_device_BSP(AudioDevice* audiodevice);
-void audiodevice_deinit_BSP(const AudioDevice* audiodevice);
+void audiodevice_deinit_BSP(AudioDevice* audiodevice);
 
 void process_audioblock_data_16_2_2(AudioDevice* audiodevice, uint16_t* input, uint16_t* output);
 

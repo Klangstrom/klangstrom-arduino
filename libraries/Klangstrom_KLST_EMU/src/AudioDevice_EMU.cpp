@@ -113,7 +113,8 @@ private:
 extern "C" {
 #endif
 
-void audiodevice_resume(const AudioDevice* audiodevice) {
+// ReSharper disable once CppParameterMayBeConstPtrOrRef
+void audiodevice_resume(AudioDevice* audiodevice) {
     if (audiodevice == nullptr) {
         error_in_function("audiodevice is nullptr");
         return;
@@ -121,7 +122,8 @@ void audiodevice_resume(const AudioDevice* audiodevice) {
     audiodevice->peripherals->is_paused = false;
 }
 
-void audiodevice_pause(const AudioDevice* audiodevice) {
+// ReSharper disable once CppParameterMayBeConstPtrOrRef
+void audiodevice_pause(AudioDevice* audiodevice) {
     if (audiodevice == nullptr) {
         error_in_function("audiodevice is nullptr");
         return;
@@ -129,7 +131,8 @@ void audiodevice_pause(const AudioDevice* audiodevice) {
     audiodevice->peripherals->is_paused = true;
 }
 
-void audiodevice_deinit_BSP(const AudioDevice* audiodevice) {
+// ReSharper disable once CppParameterMayBeConstPtrOrRef
+void audiodevice_deinit_BSP(AudioDevice* audiodevice) {
     (void) audiodevice;
 }
 
@@ -150,7 +153,8 @@ void audiodevice_deinit_peripherals_BSP(AudioDevice* audiodevice) {
     audiodevice->peripherals = nullptr;
 }
 
-static void rx_input_callback(const AudioDevice* audiodevice, const uint8_t callback_type) {
+// ReSharper disable once CppParameterMayBeConstPtrOrRef
+static void rx_input_callback(AudioDevice* audiodevice, const uint8_t callback_type) {
     if (audiodevice == nullptr) {
         error_in_function("audiodevice is nullptr");
         return;
@@ -161,7 +165,8 @@ static void rx_input_callback(const AudioDevice* audiodevice, const uint8_t call
     (void) audiodevice; // TODO maybe copy input data to audioblock?
 }
 
-static void tx_output_callback(const AudioDevice* audiodevice, const uint8_t callback_type) {
+// ReSharper disable once CppParameterMayBeConstPtrOrRef
+static void tx_output_callback(AudioDevice* audiodevice, const uint8_t callback_type) {
     if (audiodevice == nullptr) {
         error_in_function("audiodevice is nullptr");
         return;
@@ -174,7 +179,8 @@ static void tx_output_callback(const AudioDevice* audiodevice, const uint8_t cal
     }
 }
 
-static void error_callback(const AudioDevice* audiodevice, const uint8_t callback_type) {
+// ReSharper disable once CppParameterMayBeConstPtrOrRef
+static void error_callback(AudioDevice* audiodevice, const uint8_t callback_type) {
     (void) audiodevice;
     (void) callback_type;
     console_error("error in audio device");

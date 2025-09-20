@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "KlangstromDefines.h"
 #include "KlangstromEnvironment.h"
 #include "KlangstromConfiguration.h"
 

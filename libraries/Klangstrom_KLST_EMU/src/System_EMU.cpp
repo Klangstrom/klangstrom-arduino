@@ -62,7 +62,8 @@ uint32_t system_clock_frequency() {
     return HAL_RCC_GetSysClockFreq();
 }
 
-AudioDevice* system_init_audiocodec() { // TOOD this is BSP
+AudioDevice* system_init_audiocodec() {
+    // TODO move this to BSP?
     AudioInfo audioinfo;
     audioinfo.sample_rate     = 48000;
     audioinfo.output_channels = 2;
