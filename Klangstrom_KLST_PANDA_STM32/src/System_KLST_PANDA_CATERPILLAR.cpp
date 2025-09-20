@@ -46,7 +46,7 @@ extern "C" {
 #endif
 
 AudioDevice* system_init_audiocodec() {
-    // TOOD move this to BSP ... see SerialDevice for reference
+    // TODO move this to BSP ... see SerialDevice for reference
     AudioInfo audioinfo;
     audioinfo.sample_rate     = 48000;
     audioinfo.output_channels = 2;

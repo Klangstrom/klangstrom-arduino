@@ -20,7 +20,6 @@
 #include <iostream>
 
 #include "Arduino.h"
-#include "ArduinoFunctions.h"
 #include "KlangstromEnvironment.h"
 #include "KlangstromEmulator.h"
 
